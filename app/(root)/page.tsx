@@ -5,7 +5,7 @@ import { getLoggedInUser } from '@/lib/actions/user.action'
 import React from 'react'
 
 const Home = async () => {
-  const loggedInUser = await getLoggedInUser();
+  const loggedIn = await getLoggedInUser();
   return (
     <section className='home'>
         <div className='home-content'>
@@ -13,7 +13,7 @@ const Home = async () => {
               <HeaderBox 
               type='greeting'
               title='Welcome'
-              user={loggedInUser?.name || "Guest"}
+              user={loggedIn?.name || "Guest"}
               subtext='Access and manage your account and transaction efficiently.' />
 
               <TotalBalanceBox
@@ -24,7 +24,7 @@ const Home = async () => {
             Recent Transactions
         </div>
         <RightSidebar
-        user={loggedInUser}
+        user={loggedIn}
         transaction={[]}
         banks={[{currentBalance: 2565.45}, {currentBalance: 7525.05}]}/>
     </section>

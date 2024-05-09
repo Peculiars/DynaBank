@@ -49,7 +49,7 @@ const AuthForm = ({type}:{type:string}) => {
             
         }
         finally{
-
+            setisLoading(false)
         }
         setisLoading(false)
       }
