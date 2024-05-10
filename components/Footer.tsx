@@ -1,7 +1,15 @@
+import { logoutAccount } from '@/lib/actions/user.action'
 import Image from 'next/image'
+import { redirect } from 'next/navigation'
 import React from 'react'
 
 const Footer = ({user, type='desktop'}: FooterProps) => {
+
+    const handleLogOut = async ()=>{
+        const loggedOut = await logoutAccount();
+
+        if(loggedOut) redirect('/sign-in')
+    }
 
   return (
     <footer className='footer'>
@@ -12,7 +20,7 @@ const Footer = ({user, type='desktop'}: FooterProps) => {
             <h1 className='text-14 font-semibold truncate text-gray-700'>{user.name}</h1>
             <p className='text-14 truncate font-normal text-gray-600'>{user.email}</p>
         </div>
-        <div className='footer_image'>
+        <div className='footer_image' onClick={handleLogOut}>
             <Image src='icons/logout.svg' fill alt='log out icon'/>
         </div>
     </footer>
