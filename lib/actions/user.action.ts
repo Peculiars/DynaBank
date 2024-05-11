@@ -4,6 +4,8 @@ import { ID } from "node-appwrite"
 import { createAdminClient, createSessionClient } from "../appwrite"
 import { cookies } from "next/headers"
 import { parseStringify } from "../utils"
+import { CountryCode, ProcessorTokenCreateRequest, ProcessorTokenCreateRequestProcessorEnum, Products } from "plaid"
+import { plaidClient } from "../plaid"
 
 export const signIn = async ({email, password}: signInProps)=>{
     try {
@@ -58,6 +60,56 @@ export async function getLoggedInUser() {
         await account.deleteSession('current');
     } catch (error) {
         return null
+    }
+  }
+
+  export const createLinkToken = async(user:User)=>{
+    try {
+        const tokenParams ={
+            user :{
+                client_user_id: user.$id
+            },
+            client_name: user.name,
+            products: ['auth'] as Products[],
+            language: 'en',
+            country_codes: ['US'] as CountryCode[],
+        }
+        const response = await plaidClient.linkTokenCreate(tokenParams);
+
+        return parseStringify({linkToken: response.data.link_token})
+    } catch (error) {
+        console.log(error);
+        
+    }
+  }
+
+  export const exchangePublicToken = async({publicToken, user}: exchangePublicTokenProps) =>{
+    try {
+        const response = await plaidClient.itemPublicTokenExchange({public_token: publicToken});
+        const accessToken = response.data.access_token;
+        const itemId = response.data.item_id;
+
+        const accountsResponse = await plaidClient.accountsGet({access_token:accessToken})
+
+        const accountData = accountsResponse.data.accounts[0];
+
+        const request: ProcessorTokenCreateRequest = {
+            access_token: accessToken,
+            account_id: accountData.account_id,
+            processor: 'dwolla' as ProcessorTokenCreateRequestProcessorEnum,
+        };
+
+        const processorTokenResponse = await plaidClient.processorTokenCreate(request);
+        const processorToken = processorTokenResponse.data.processor_token;
+
+        const fundingSourceUrl = await addFundingsource({
+            dwollaCustomerId: user.dwollaCustomerId,
+            processorToken,
+            bankName: accountData.name,
+        })
+    } catch (error) {
+        console.error('An error occurred while creating exchange token:', error);
+        
     }
   }
   
