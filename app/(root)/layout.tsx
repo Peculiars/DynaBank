@@ -12,7 +12,7 @@ export default async function RootLayout({
 
   const loggendIn = await getLoggedInUser();
 
-  if (!loggendIn) redirect('/sign-in')
+  if (!loggendIn) redirect('/')
   return (
     <main className="flex h-screen w-full font-inter">
         <SideBar user={loggendIn}/>
