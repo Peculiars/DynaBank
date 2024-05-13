@@ -32,11 +32,21 @@ const AuthForm = ({type}:{type:string}) => {
 
       const onSubmit = async (data: z.infer<typeof formSchema>)=> {
         setisLoading(true)
-        // Do something with the form values.
-        // ✅ This will be type-safe and validated.
+        const userData = {
+            firstName: data.firstName!,
+            lastName: data.lastName!,
+            address: data.address!,
+            city: data.city!,
+            state: data.state!,
+            postalCode: data.postalCode!,
+            dob: data.dob!,
+            ssn: data.ssn!,
+            email: data.email,
+            password: data.password
+        }
         try {
             if(type === 'sign-up'){
-                const newUser = await signUp(data)
+                const newUser = await signUp(userData)
                 setUser(newUser)
             };
             if(type === 'sign-in'){
@@ -44,7 +54,7 @@ const AuthForm = ({type}:{type:string}) => {
                     email: data.email,
                     password: data.password
                 })
-                if(response) router.push('/')
+                if(response) router.push('/sign-in')
              }
         } catch (error) {
             
@@ -69,11 +79,11 @@ const AuthForm = ({type}:{type:string}) => {
                 </h1>
             </div>
         </header>
-        {/* {user ? ( */}
+        {user ? (
             <div>
                 <PlaidLink user={user} variant='primary'/>
             </div>
-         {/* ): ( */}
+            ): (
             <>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -87,11 +97,11 @@ const AuthForm = ({type}:{type:string}) => {
                                 <CustomInput control={form.control} name='city' label='City' placeholder='Enter your city'/>
                                 <div className='flex gap-4'>
                                     <CustomInput control={form.control} name='state' label='State' placeholder='example: lagos'/>
-                                    <CustomInput control={form.control} name='zipCode' label='Zip Code' placeholder='example: 101212'/>
+                                    <CustomInput control={form.control} name='postalCode' label='Postal Code' placeholder='example: 101212'/>
                                 </div>
                                 <div className='flex gap-4'>
                                     <CustomInput control={form.control} name='dob' label='Date of Birth' placeholder='yyyy-mm-dd'/>
-                                    <CustomInput control={form.control} name='bvn' label='BVN' placeholder='exammple: 1234567890'/>
+                                    <CustomInput control={form.control} name='ssn' label='SSN' placeholder='example: 12345'/>
                                 </div>
                             </>
                         )}
@@ -115,7 +125,7 @@ const AuthForm = ({type}:{type:string}) => {
                     </Link>
                 </footer>
             </>
-        {/* )} */}
+        )}
     </section>
   )
 }
