@@ -35,11 +35,11 @@ const AuthForm = ({type}:{type:string}) => {
         const userData = {
             firstName: data.firstName!,
             lastName: data.lastName!,
-            address: data.address!,
+            address1: data.address1!,
             city: data.city!,
             state: data.state!,
             postalCode: data.postalCode!,
-            dob: data.dob!,
+            dateOfBirth: data.dateOfBirth!,
             ssn: data.ssn!,
             email: data.email,
             password: data.password
@@ -54,7 +54,7 @@ const AuthForm = ({type}:{type:string}) => {
                     email: data.email,
                     password: data.password
                 })
-                if(response) router.push('/sign-in')
+                if(response) router.push('/')
              }
         } catch (error) {
             
@@ -93,14 +93,14 @@ const AuthForm = ({type}:{type:string}) => {
                                     <CustomInput control={form.control} name='firstName' label='First name' placeholder='Enter your first name'/>
                                     <CustomInput control={form.control} name='lastName' label='Last name' placeholder='Enter your last name'/>
                                 </div>
-                                <CustomInput control={form.control} name='address' label='Address' placeholder='Enter your specific address'/>
+                                <CustomInput control={form.control} name='address1' label='Address' placeholder='Enter your specific address'/>
                                 <CustomInput control={form.control} name='city' label='City' placeholder='Enter your city'/>
                                 <div className='flex gap-4'>
                                     <CustomInput control={form.control} name='state' label='State' placeholder='example: lagos'/>
                                     <CustomInput control={form.control} name='postalCode' label='Postal Code' placeholder='example: 101212'/>
                                 </div>
                                 <div className='flex gap-4'>
-                                    <CustomInput control={form.control} name='dob' label='Date of Birth' placeholder='yyyy-mm-dd'/>
+                                    <CustomInput control={form.control} name='dateOfBirth' label='Date of Birth' placeholder='yyyy-mm-dd'/>
                                     <CustomInput control={form.control} name='ssn' label='SSN' placeholder='example: 12345'/>
                                 </div>
                             </>
