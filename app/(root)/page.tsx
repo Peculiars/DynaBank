@@ -46,7 +46,6 @@ const Home = async ({searchParams :{id, page}}: SearchParamProps) => {
         user={loggedIn}
         transactions={account?.transactions}
         banks={accountsData?.slice(0, 2)}/>
-        console.log(accountsData, accounts);
     </section>
   )
 }
