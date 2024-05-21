@@ -152,14 +152,7 @@ export const createLinkToken = async (user: User) => {
   }
 }
 
-export const createBankAccount = async ({
-  userId,
-  bankId,
-  accountId,
-  accessToken,
-  fundingSourceUrl,
-  shareableId,
-}: createBankAccountProps) => {
+export const createBankAccount = async ({userId, bankId, accountId, accessToken, fundingSourceUrl, shareableId}: createBankAccountProps) => {
   try {
     const { database } = await createAdminClient();
 
