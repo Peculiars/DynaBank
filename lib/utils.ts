@@ -186,7 +186,7 @@ export function encryptId(id: string) {
 export function decryptId(id: string) {
   return atob(id);
 }
-
+                   
 export const getTransactionStatus = (date: Date) => {
   const today = new Date();
   const twoDaysAgo = new Date(today);
@@ -194,6 +194,7 @@ export const getTransactionStatus = (date: Date) => {
 
   return date > twoDaysAgo ? "Processing" : "Success";
 };
+
 
 export const AuthformSchema = (type: string)=> z.object({
       //Sign up
