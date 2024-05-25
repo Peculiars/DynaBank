@@ -143,6 +143,7 @@ declare interface CreditCardProps {
   showBalance?: boolean;
 }
 
+
 declare interface BankInfoProps {
   account: Account;
   appwriteItemId?: string;

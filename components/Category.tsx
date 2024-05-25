@@ -2,8 +2,8 @@ import Image from "next/image";
 
 import { topCategoryStyles } from "@/constants";
 import { cn } from "@/lib/utils";
-
-import { Progress } from "./ui/progress";
+import { Progress } from "@/components/ui/progress"
+import { Indicator } from "@radix-ui/react-progress";
 
 const Category = ({ category }: CategoryProps) => {
   const {
@@ -14,6 +14,8 @@ const Category = ({ category }: CategoryProps) => {
     icon,
   } = topCategoryStyles[category.name as keyof typeof topCategoryStyles] ||
   topCategoryStyles.default;
+
+  const actualValue = (category.count / category.totalCount) * 100
 
   return (
     <div className={cn("gap-[18px] flex p-4 rounded-xl", bg)}>
@@ -26,10 +28,10 @@ const Category = ({ category }: CategoryProps) => {
           <h3 className={cn("font-normal", count)}>{category.count}</h3>
         </div>
         <Progress
-          value={(category.count / category.totalCount) * 100}
-          className={cn("h-2 w-full", progressBg)}
-          indicatorClassName={cn("h-2 w-full", indicator)}
-        />
+          value={actualValue}
+          className={cn("h-2 w-full", progressBg, indicator)}
+        >
+        </Progress>
       </div>
     </div>
   );
