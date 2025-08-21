@@ -10,12 +10,12 @@ import { Pagination } from './Pagination'
 const RecentTransactions = ({accounts, transactions, appwriteItemId, page=1,}: RecentTransactionsProps) => {
 
     const rowsPerPage = 10;
-    const totalPages = Math.ceil(transactions.length/rowsPerPage);
+    const totalPages = Math.ceil(transactions?.length/rowsPerPage);
 
     const indexOfLastTransaction = page * rowsPerPage;
     const indexOfFirstTransaction = indexOfLastTransaction - rowsPerPage;
 
-    const currentTransactions = transactions.slice(indexOfFirstTransaction, indexOfLastTransaction)
+    const currentTransactions = transactions?.slice(indexOfFirstTransaction, indexOfLastTransaction)
   return (
     <section className='recent-transactions'>
         <header className='flex items-center justify-between'>

@@ -6,8 +6,7 @@ import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import {Form} from "@/components/ui/form"
 import CustomInput from './CustomInput'
 import { AuthformSchema } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
@@ -19,6 +18,8 @@ const AuthForm = ({type}:{type:string}) => {
     const router = useRouter();
     const [user, setUser] = useState(null);
     const [isLoading, setisLoading]=useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
 
     const formSchema = AuthformSchema(type);
 
@@ -32,6 +33,7 @@ const AuthForm = ({type}:{type:string}) => {
 
       const onSubmit = async (data: z.infer<typeof formSchema>)=> {
         setisLoading(true)
+        setErrorMessage(null)
         const userData = {
             firstName: data.firstName!,
             lastName: data.lastName!,
@@ -56,8 +58,9 @@ const AuthForm = ({type}:{type:string}) => {
                 })
                 if(response) router.push('/')
              }
-        } catch (error) {
-            
+
+        } catch (error: any) {
+            setErrorMessage(error?.message)
         }
         finally{
             setisLoading(false)
@@ -115,6 +118,9 @@ const AuthForm = ({type}:{type:string}) => {
                                 )
                                 : type === 'sign-in' ? 'Sign In' : 'Sign up'}
                             </Button>
+                            {errorMessage && (
+                                <p className='text-red-500 text-center'>{errorMessage}</p>
+                            )}
                         </div>
                     </form>
                 </Form>

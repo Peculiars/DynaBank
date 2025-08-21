@@ -15,21 +15,17 @@ import { parseStringify } from "../utils";
 import { getTransactionsByBankId } from "@/lib/actions/transaction.action";
 import { getBanks, getBank } from "@/lib/actions/user.action";
 
-// Get multiple bank accounts
+
 export const getAccounts = async ({ userId }: getAccountsProps) => {
   try {
-    // get banks from db
     const banks = await getBanks({ userId });
 
     const accounts = await Promise.all(
       banks?.map(async (bank: Bank) => {
-        // get each account info from plaid
         const accountsResponse = await plaidClient.accountsGet({
           access_token: bank.accessToken,
         });
         const accountData = accountsResponse.data.accounts[0];
-
-        // get institution info from plaid
         const institution = await getInstitution({
           institutionId: accountsResponse.data.item.institution_id!,
         });
@@ -63,19 +59,14 @@ export const getAccounts = async ({ userId }: getAccountsProps) => {
   }
 };
 
-// Get one bank account
 export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
   try {
-    // get bank from db
     const bank = await getBank({ documentId: appwriteItemId });
-
-    // get account info from plaid
     const accountsResponse = await plaidClient.accountsGet({
       access_token: bank.accessToken,
     });
     const accountData = accountsResponse.data.accounts[0];
 
-    // get transfer transactions from appwrite
     const transferTransactionsData = await getTransactionsByBankId({
       bankId: bank.$id,
     });
@@ -92,14 +83,20 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
       })
     );
 
-    // get institution info from plaid
     const institution = await getInstitution({
       institutionId: accountsResponse.data.item.institution_id!,
     });
+    
 
-    const transactions = await getTransactions({
-      accessToken: bank?.accessToken,
-    });
+    let plaidTransactions = [];
+    try {
+      const transactionsResult = await getTransactions({
+        accessToken: bank?.accessToken,
+      });
+      plaidTransactions = Array.isArray(transactionsResult) ? transactionsResult : [];
+    } catch (transactionError: any) {
+      console.warn("Could not fetch Plaid transactions:", transactionError.message);
+    }
 
     const account = {
       id: accountData.account_id,
@@ -114,8 +111,8 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
       appwriteItemId: bank.$id,
     };
 
-    // sort transactions by date such that the most recent transaction is first
-      const allTransactions = [...transactions, ...transferTransactions].sort(
+    // Safely combine transactions
+    const allTransactions = [...plaidTransactions, ...transferTransactions].sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
 
@@ -125,10 +122,10 @@ export const getAccount = async ({ appwriteItemId }: getAccountProps) => {
     });
   } catch (error) {
     console.error("An error occurred while getting the account:", error);
+    throw error; // Re-throw to let the calling component handle it
   }
 };
 
-// Get bank info
 export const getInstitution = async ({
   institutionId,
 }: getInstitutionProps) => {
@@ -146,7 +143,6 @@ export const getInstitution = async ({
   }
 };
 
-// Get transactions
 export const getTransactions = async ({
   accessToken,
 }: getTransactionsProps) => {
@@ -154,7 +150,6 @@ export const getTransactions = async ({
   let transactions: any = [];
 
   try {
-    // Iterate through each page of new transaction updates for item
     while (hasMore) {
       const response = await plaidClient.transactionsSync({
         access_token: accessToken,
@@ -162,7 +157,7 @@ export const getTransactions = async ({
 
       const data = response.data;
 
-      transactions = response.data.added.map((transaction) => ({
+      const newTransactions = response.data.added.map((transaction) => ({
         id: transaction.transaction_id,
         name: transaction.name,
         paymentChannel: transaction.payment_channel,
@@ -175,11 +170,19 @@ export const getTransactions = async ({
         image: transaction.logo_url,
       }));
 
+      transactions = [...transactions, ...newTransactions];
       hasMore = data.has_more;
     }
 
     return parseStringify(transactions);
-  } catch (error) {
-    console.error("An error occurred while getting the accounts:", error);
+  } catch (error: any) {
+    console.error("An error occurred while getting transactions:", error);
+
+    if (error.response?.data?.error_code === 'ADDITIONAL_CONSENT_REQUIRED') {
+      console.error("Additional consent required for transactions. Please re-link the account with transactions product enabled.");
+      throw new Error("Additional consent required for transactions. Please re-link your account.");
+    }
+
+    return parseStringify([]);
   }
 };

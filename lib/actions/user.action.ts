@@ -48,8 +48,10 @@ export const signIn = async ({ email, password }: signInProps) => {
     const user = await getUserInfo({ userId: session.userId }) 
 
     return parseStringify(user);
-  } catch (error) {
-    console.error('Error', error);
+  } catch (error:any) {
+    console.error('Error signing in:', error);
+    const message = error?.response?.message || "Something went wrong. Please try again."
+    throw new Error(message)
   }
 }
 
@@ -92,7 +94,7 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
     )
 
     const session = await account.createEmailPasswordSession(email, password);
-
+    console.log('session', session)
     cookies().set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
@@ -101,29 +103,35 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
     });
 
     return parseStringify(newUser);
-  } catch (error) {
-    console.error('Error', error);
+  } catch (error: any) {
+    console.log('errors', error)
+    const message = error?.response?.message
+    throw new Error(message)
   }
 }
 
 export async function getLoggedInUser() {
   try {
-    const { account } = await createSessionClient();
+    const sessionClient = await createSessionClient();
+    if (!sessionClient) return null;
+    
+    const { account } = sessionClient;
     const result = await account.get();
 
-    const user = await getUserInfo({ userId: result.$id})
-
+    const user = await getUserInfo({ userId: result.$id});
     return parseStringify(user);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return null;
   }
 }
 
 export const logoutAccount = async () => {
   try {
-    const { account } = await createSessionClient();
-
+    const sessionClient = await createSessionClient();
+    if (!sessionClient) return null;
+    
+    const { account } = sessionClient;
     cookies().delete('appwrite-session');
 
     await account.deleteSession('current');
@@ -139,7 +147,7 @@ export const createLinkToken = async (user: User) => {
         client_user_id: user.$id
       },
       client_name: `${user.firstName} ${user.lastName}`,
-      products: ['auth'] as Products[],
+      products: ['auth', 'transactions'] as Products[],
       language: 'en',
       country_codes: ['US'] as CountryCode[],
     }

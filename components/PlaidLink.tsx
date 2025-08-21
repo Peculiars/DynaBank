@@ -19,7 +19,7 @@ const PlaidLink = ({user, variant}:PlaidLinkProps) => {
                 const data = await createLinkToken(user);
                 setToken(data?.linkToken);
             } catch (error:any) {
-                setError(error.message  || 'An unknown error occurred'); // Update error state if token creation fails
+                setError(error.message  || 'An unknown error occurred'); 
             }
         };
 
@@ -34,7 +34,7 @@ const PlaidLink = ({user, variant}:PlaidLinkProps) => {
             });
             router.push('/');
         } catch (error:any) {
-            setError(error.message); // Update error state if token exchange fails
+            setError(error.message); 
         }
     }, [user, router]);
 
