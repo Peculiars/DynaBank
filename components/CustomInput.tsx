@@ -11,10 +11,11 @@ interface CustomInput {
     control: Control<z.infer<typeof formSchema>>,
     name: FieldPath<z.infer<typeof formSchema>>,
     label: string,
-    placeholder: string
+    placeholder: string,
+    type?: string
 }
 
-const CustomInput = ({control, name, label, placeholder}: CustomInput) => {
+const CustomInput = ({control, name, label, placeholder, type}: CustomInput) => {
   return (
     <div>
         <FormField control={control} name={name} render={({ field }) => (
@@ -24,7 +25,23 @@ const CustomInput = ({control, name, label, placeholder}: CustomInput) => {
                 </div>
                 <div className='flex w-full flex-col'>
                     <FormControl>
-                        <Input placeholder={placeholder} type={name === 'password' ? 'password' : 'text'} className='input-class' {...field}/>
+                        <Input 
+                            placeholder={placeholder} 
+                            type={type || (name === 'password' ? 'password' : 'text')} 
+                            className='input-class' 
+                            {...field}
+                            {...(type === 'date' && {
+                                pattern: "\\d{4}-\\d{2}-\\d{2}",
+                                onFocus: (e) => {
+                                    e.target.type = 'date';
+                                },
+                                onBlur: (e) => {
+                                    if (!e.target.value) {
+                                        e.target.type = 'text';
+                                    }
+                                }
+                            })}
+                        />
                     </FormControl>
                     <FormMessage className='form-message mt-2'/>
                 </div>

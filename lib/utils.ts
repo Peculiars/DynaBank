@@ -184,17 +184,43 @@ export const getTransactionStatus = (date: Date) => {
   return date > twoDaysAgo ? "Processing" : "Success";
 };
 
+const calculateAge = (dateOfBirth: string): number => {
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  return age;
+};
 
-export const AuthformSchema = (type: string)=> z.object({
-  firstName: type=== 'sign-in' ? z.string().optional() : z.string().min(2),
-  lastName: type=== 'sign-in' ? z.string().optional() : z.string().min(3),
-  address1: type=== 'sign-in' ? z.string().optional() : z.string().max(50),
-  city: type=== 'sign-in' ? z.string().optional() : z.string().max(50),
-  state: type=== 'sign-in' ? z.string().optional() : z.string().min(2).max(2),
-  postalCode: type=== 'sign-in' ? z.string().optional() : z.string().min(5).max(5),
-  dateOfBirth: type=== 'sign-in' ? z.string().optional() : z.string().min(3),
-  ssn: type=== 'sign-in' ? z.string().optional() : z.string().min(4).max(4),
+
+
+export const AuthformSchema = (type: string) => z.object({
+  firstName: type === 'sign-in' ? z.string().optional() : z.string().min(2, { message: "First name must be at least 2 characters long" }),
+  lastName: type === 'sign-in' ? z.string().optional() : z.string().min(3, { message: "Last name must be at least 3 characters long" }),
+  address1: type === 'sign-in' ? z.string().optional() : z.string().max(50, { message: "Address must be at most 50 characters long" }),
+  city: type === 'sign-in' ? z.string().optional() : z.string().max(50, { message: "City must be at most 50 characters long" }),
+  state: type === 'sign-in' ? z.string().optional() : z.string().min(2, { message: "State must be at least 2 characters long" }).max(2, { message: "State must be exactly 2 characters long" }),
+  postalCode: type === 'sign-in' ? z.string().optional() : z.string().min(5, { message: "Postal code must be at least 5 characters long" }).max(5, { message: "Postal code must be exactly 5 characters long" }),
+  dateOfBirth: type === 'sign-in' 
+    ? z.string().optional() 
+    : z.string()
+        .min(3)
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in yyyy-mm-dd format")
+        .refine((date) => {
+          const birthDate = new Date(date);
+          return birthDate <= new Date();
+        }, "You must be at least 18 years old to create an account")
+        .refine((date) => {
+          const age = calculateAge(date);
+          return age >= 18;
+        }, "You must be at least 18 years old to create an account"),
+  ssn: type === 'sign-in' ? z.string().optional() : z.string().min(4, { message: "SSN must be at least 4 characters long" }).max(4, { message: "SSN must be exactly 4 characters long" }),
 
   email: z.string().email(),
   password: z.string().min(8),
-})
+});

@@ -47,11 +47,13 @@ export const signIn = async ({ email, password }: signInProps) => {
 
     const user = await getUserInfo({ userId: session.userId }) 
 
-    return parseStringify(user);
-  } catch (error:any) {
+    return { success: true, data: parseStringify(user) };
+  } catch (error: any) {
     console.error('Error signing in:', error);
-    const message = error?.response?.message || "Something went wrong. Please try again."
-    throw new Error(message)
+    return { 
+      success: false, 
+      error: error?.response?.message || "Invalid credentials. Please check the email and password." 
+    };
   }
 }
 
@@ -70,14 +72,18 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
       `${firstName} ${lastName}`
     );
 
-    if(!newUserAccount) throw new Error('Error creating user')
+    if(!newUserAccount) {
+      return { success: false, error: 'Error creating user' };
+    }
 
     const dwollaCustomerUrl = await createDwollaCustomer({
       ...userData,
       type: 'personal'
     })
 
-    if(!dwollaCustomerUrl) throw new Error('Error creating Dwolla customer')
+    if(!dwollaCustomerUrl) {
+      return { success: false, error: 'Error creating Dwolla customer' };
+    }
 
     const dwollaCustomerId = extractCustomerIdFromUrl(dwollaCustomerUrl);
 
@@ -94,7 +100,6 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
     )
 
     const session = await account.createEmailPasswordSession(email, password);
-    console.log('session', session)
     cookies().set("appwrite-session", session.secret, {
       path: "/",
       httpOnly: true,
@@ -102,11 +107,10 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
       secure: true,
     });
 
-    return parseStringify(newUser);
+    return { success: true, data: parseStringify(newUser) };
   } catch (error: any) {
     console.log('errors', error)
-    const message = error?.response?.message
-    throw new Error(message)
+    return { success: false, error: "Something went wrong. Please try again." };
   }
 }
 

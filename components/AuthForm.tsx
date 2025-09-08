@@ -13,13 +13,13 @@ import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { signIn, signUp } from '@/lib/actions/user.action'
 import PlaidLink from './PlaidLink'
+import StateSelect from './State'
 
 const AuthForm = ({type}:{type:string}) => {
     const router = useRouter();
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<any>(null);
     const [isLoading, setisLoading]=useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
 
     const formSchema = AuthformSchema(type);
 
@@ -31,9 +31,10 @@ const AuthForm = ({type}:{type:string}) => {
         },
       })
 
-      const onSubmit = async (data: z.infer<typeof formSchema>)=> {
+      const onSubmit = async (data: z.infer<typeof formSchema>) => {
         setisLoading(true)
         setErrorMessage(null)
+        
         const userData = {
             firstName: data.firstName!,
             lastName: data.lastName!,
@@ -46,27 +47,38 @@ const AuthForm = ({type}:{type:string}) => {
             email: data.email,
             password: data.password
         }
+        
         try {
-            if(type === 'sign-up'){
-                const newUser = await signUp(userData)
-                setUser(newUser)
-            };
-            if(type === 'sign-in'){
+            if (type === 'sign-up') {
+                const response = await signUp(userData)
+                
+                if (response?.success) {
+                    setUser(response.data)
+                } else {
+                    setErrorMessage(response?.error || "Something went wrong. Please try again.")
+                }
+            }
+            
+            if (type === 'sign-in') {
                 const response = await signIn({
                     email: data.email,
                     password: data.password
                 })
-                if(response) router.push('/')
-             }
+                
+                if (response?.success) {
+                    router.push('/')
+                } else {
+                    setErrorMessage(response?.error || "Something went wrong. Please try again.")
+                }
+            }
 
         } catch (error: any) {
-            setErrorMessage(error?.message)
-        }
-        finally{
+            setErrorMessage("Something went wrong. Please try again.")
+            console.error('Form submission error:', error)
+        } finally {
             setisLoading(false)
         }
-        setisLoading(false)
-      }
+    }
 
   return (
     <section className='auth-form'>
@@ -99,17 +111,17 @@ const AuthForm = ({type}:{type:string}) => {
                                 <CustomInput control={form.control} name='address1' label='Address' placeholder='Enter your specific address'/>
                                 <CustomInput control={form.control} name='city' label='City' placeholder='example: New Jersey'/>
                                 <div className='flex gap-4'>
-                                    <CustomInput control={form.control} name='state' label='State' placeholder='example: NY'/>
+                                    <StateSelect control={form.control} name='state' label='State' placeholder='Select your state'/>
                                     <CustomInput control={form.control} name='postalCode' label='Postal Code' placeholder='example: 10111'/>
                                 </div>
                                 <div className='flex gap-4'>
-                                    <CustomInput control={form.control} name='dateOfBirth' label='Date of Birth' placeholder='yyyy-mm-dd'/>
+                                    <CustomInput type='date' control={form.control} name='dateOfBirth' label='Date of Birth' placeholder='yyyy-mm-dd'/>
                                     <CustomInput control={form.control} name='ssn' label='SSN' placeholder='example: 1234'/>
                                 </div>
                             </>
                         )}
                         <CustomInput control={form.control} name='email' label='Email' placeholder='Enter your email'/>
-                        <CustomInput control={form.control} name='password' label='Password' placeholder='Enter your pasword'/>
+                        <CustomInput control={form.control} name='password' label='Password' placeholder='Enter your password'/>
                         <div className='flex flex-col gap-4'>
                             <Button type="submit" className='form-btn' disabled={isLoading}>{isLoading ? (
                                 <>
@@ -125,7 +137,7 @@ const AuthForm = ({type}:{type:string}) => {
                     </form>
                 </Form>
                 <footer className='flex justify-center gap-1'>
-                    <p className='text-14 font-normal text-gray-600'>{type === 'sign-in'? "Dont't have an account" : "Already have an account"}</p>
+                    <p className='text-14 font-normal text-gray-600'>{type === 'sign-in'? "Don't have an account" : "Already have an account"}</p>
                     <Link href={type === 'sign-in' ? '/sign-up' : '/sign-in'} className='form-link'>
                         {type === 'sign-in' ? 'Sign up' : 'Sign in'}
                     </Link>
